@@ -1,0 +1,24 @@
+{
+  "name": "gpn-tron",
+  "version": "0.1.0",
+  "description": "A bot to interact with gpn-tron.duckdns.org:4000 (https://github.comfreehuntx/gpntron/blob/master/PROTOCOL.md",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo 'No tests implemented'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Proliecan/gpn-tron.git"
+  },
+  "keywords": [
+    "gpn21",
+    "gulaschprogrammiernacht",
+    "gpn-tron"
+  ],
+  "author": "@proliecan",
+  "license": "SEE LICENSE IN LICENSE",
+  "bugs": {
+    "url": "https://github.com/Proliecan/gpn-tron/issues"
+  },
+  "homepage": "https://github.com/Proliecan/gpn-tron#readme"
+}
