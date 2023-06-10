@@ -64,7 +64,7 @@ handleLine = (line) => {
             game.map.positions[line[2]][line[3]] = line[1];
             break;
         case 'tick':
-            logMao();
+            logMap();
 
             console.log('tick')
             let move = (bot.makeMove(game));
@@ -75,10 +75,14 @@ handleLine = (line) => {
             break;
         case 'die':
             // todo: free up fields of died players
-            console.log(line)
             let diedPlayers = line.slice(1, line.length);
             // log in color
-            console.log('\x1b[31m%s\x1b[0m', 'Player(s) died: ' + diedPlayers);
+            let logline = '\x1b[31mPlayer(s) died: \x1b[0m';
+            diedPlayers.forEach(player => {
+                let colorCode = playerIDtoColorCode(player);
+                logline += colorCode + player + '\x1b[0m, ';
+            });
+            console.log(logline);
 
             // remove died players from map
             diedPlayers.forEach(player => {
@@ -102,28 +106,31 @@ handleLine = (line) => {
     }
 }
 
-logMao = () => {
+logMap = () => {
     let map = game.map.positions;
 
     // use colored output and full block unicode character to draw map
     for (let i = 0; i < map.length; i++) {
         let line = '';
         for (let j = 0; j < map[i].length; j++) {
-            switch (map[j][i]) {
-                case Number.POSITIVE_INFINITY:
-                    line += '\x1b[37m\u2588\x1b[0m';
-                    line += '\x1b[37m\u2588\x1b[0m';
-                    break;
-                case game.player.id:
-                    line += '\x1b[32m\u2588\x1b[0m';
-                    line += '\x1b[32m\u2588\x1b[0m';
-                    break;
-                default:
-                    line += '\x1b[31m\u2588\x1b[0m';
-                    line += '\x1b[31m\u2588\x1b[0m';
-                    break;
-            }
+            let colorCode = playerIDtoColorCode(map[j][i]);
+
+            if (map[j][i] == Number.POSITIVE_INFINITY)
+                colorCode = '\x1b[37m';
+            else if (map[j][i] == game.player.id)
+                colorCode = '\x1b[32m';
+
+            line += colorCode + '\u2588\x1b[0m';
+            line += colorCode + '\u2588\x1b[0m';
         }
         console.log(line);
     }
+}
+
+playerIDtoColorCode = (id) => {
+    id = (id % 5) + 1; // green (32) is reserved for player
+    
+    if (id == 2) id --;
+
+    return '\x1b[3' + id + 'm';
 }
