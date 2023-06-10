@@ -62,6 +62,10 @@ handleLine = (line) => {
             break;
         case 'pos':
             game.map.positions[line[2]][line[3]] = line[1];
+            if (line[1] == game.player.id) {
+                game.player.x = line[2];
+                game.player.y = line[3];
+            }
             break;
         case 'tick':
             logMap();
@@ -110,6 +114,9 @@ logMap = () => {
     let map = game.map.positions;
 
     // use colored output and full block unicode character to draw map
+    // o--> x
+    // |
+    // v y
     for (let i = 0; i < map.length; i++) {
         let line = '';
         for (let j = 0; j < map[i].length; j++) {
