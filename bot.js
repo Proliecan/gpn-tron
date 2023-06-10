@@ -9,6 +9,16 @@ module.exports = {
                     width: width,
                     height: height,
                     positions: positions,
+
+                    removeDiedPlayer: (playerId) => {
+                        for (let i = 0; i < positions.length; i++) {
+                            for (let j = 0; j < positions[i].length; j++) {
+                                if (positions[i][j] == playerId) {
+                                    positions[i][j] = Number.POSITIVE_INFINITY;
+                                }
+                            }
+                        }
+                    }
                 },
                 player: {
                     id: playerId,

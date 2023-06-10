@@ -61,13 +61,11 @@ handleLine = (line) => {
             console.log('<New game!>');
             break;
         case 'pos':
-            // todo: record position
             game.map.positions[line[2]][line[3]] = line[1];
             break;
         case 'tick':
-            console.log(game.map.positions)
+            logMao();
 
-            // todo: pass game object to bot to make move
             console.log('tick')
             let move = (bot.makeMove(game));
             console.log(move)
@@ -77,6 +75,15 @@ handleLine = (line) => {
             break;
         case 'die':
             // todo: free up fields of died players
+            console.log(line)
+            let diedPlayers = line.slice(1, line.length);
+            // log in color
+            console.log('\x1b[31m%s\x1b[0m', 'Player(s) died: ' + diedPlayers);
+
+            // remove died players from map
+            diedPlayers.forEach(player => {
+                game.map.removeDiedPlayer(player);
+            });
             break;
         case 'message':
             // drop packet
@@ -92,5 +99,31 @@ handleLine = (line) => {
         default:
             console.log('\x1b[33m%s\x1b[0m', 'Unknown packet type: ' + line[0]);
             break;
+    }
+}
+
+logMao = () => {
+    let map = game.map.positions;
+
+    // use colored output and full block unicode character to draw map
+    for (let i = 0; i < map.length; i++) {
+        let line = '';
+        for (let j = 0; j < map[i].length; j++) {
+            switch (map[j][i]) {
+                case Number.POSITIVE_INFINITY:
+                    line += '\x1b[37m\u2588\x1b[0m';
+                    line += '\x1b[37m\u2588\x1b[0m';
+                    break;
+                case game.player.id:
+                    line += '\x1b[32m\u2588\x1b[0m';
+                    line += '\x1b[32m\u2588\x1b[0m';
+                    break;
+                default:
+                    line += '\x1b[31m\u2588\x1b[0m';
+                    line += '\x1b[31m\u2588\x1b[0m';
+                    break;
+            }
+        }
+        console.log(line);
     }
 }
