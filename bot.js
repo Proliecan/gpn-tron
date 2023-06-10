@@ -22,10 +22,7 @@ module.exports = {
                 },
                 player: {
                     id: playerId,
-                    x: 0,
-                    y: 0,
                 },
-                enemies: [],
             }
         }
     },
