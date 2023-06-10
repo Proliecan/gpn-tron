@@ -57,14 +57,14 @@ handleLine = (line) => {
             console.log('\x1b[31m%s\x1b[0m', 'Error: ' + line[1]);
             break;
         case 'game':
-            game = bot.factory.newGame(line[1], line[2], line[3]);
+            game = bot.factory.newGame(parseInt(line[1]), parseInt(line[2]), parseInt(line[3]));
             console.log('<New game!>');
             break;
         case 'pos':
             game.map.positions[line[2]][line[3]] = line[1];
             if (line[1] == game.player.id) {
-                game.player.x = line[2];
-                game.player.y = line[3];
+                game.player.x = parseInt(line[2]);
+                game.player.y = parseInt(line[3]);
             }
             break;
         case 'tick':
@@ -73,7 +73,8 @@ handleLine = (line) => {
             console.log('tick')
             let move = (bot.makeMove(game));
             console.log(move)
-            // todo: send move to server
+            // if no move break
+            if (move == undefined) break;
             client.write('move|' + move + '\n')
             // todo: record tick for reward
             break;
