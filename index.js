@@ -57,14 +57,16 @@ handleLine = (line) => {
             console.log('\x1b[31m%s\x1b[0m', 'Error: ' + line[1]);
             break;
         case 'game':
-            // todo: make new game object
             game = bot.factory.newGame(line[1], line[2], line[3]);
             console.log('<New game!>');
             break;
         case 'pos':
             // todo: record position
+            game.map.positions[line[2]][line[3]] = line[1];
             break;
         case 'tick':
+            console.log(game.map.positions)
+
             // todo: pass game object to bot to make move
             console.log('tick')
             let move = (bot.makeMove(game));
