@@ -1,5 +1,7 @@
-// make tcp connection to server
+const net = require('net');
+const bot = require('./bot');
 
+// make tcp connection to server
 const host = 'gpn-tron.duckdns.org';
 const port = 4000;
 
@@ -8,14 +10,15 @@ const username = process.argv[process.argv.indexOf('-n') + 1];
 // password is parameter after -p flag
 const password = process.argv[process.argv.indexOf('-p') + 1];
 
-const net = require('net');
+// resources
 const client = new net.Socket();
+let game;
 
 client.connect(port, host, function () {
     console.log('Connected to ' + host + ':' + port);
     // log answer from server
     client.on('data', function (data) {
-        console.log(data.toString());
+        // console.log('Received: ' + data);
         handlePacket(data.toString());
     });
 
@@ -25,33 +28,51 @@ client.connect(port, host, function () {
 });
 
 handlePacket = function (packet) {
-    // strip newline
-    packet = packet.replace('\n', '');
+    // split at newline
+    lines = packet.split('\n')
+
+    lines.forEach(line => {
+        handleLine(line)
+    });
+}
+
+handleLine = (line) => {
 
     // split packet into array
-    packet = packet.split('|');
+    line = line.split('|');
 
     // lowercase packet type
-    packet[0] = packet[0].toLowerCase();
+    line[0] = line[0].toLowerCase();
 
     // handle packet
-    switch (packet[0]) {
+    switch (line[0]) {
+        case '':
+            // drop
+            break;
         case 'motd':
             //ignore
             break;
         case 'error':
             // log error in red
-            console.log('\x1b[31m%s\x1b[0m', 'Error: ' + packet[1]);
+            console.log('\x1b[31m%s\x1b[0m', 'Error: ' + line[1]);
             break;
         case 'game':
             // todo: make new game object
+            console.log(line);
+            game = bot.factory.newGame(line[1], line[2], line[3]);
+            console.log('New game: ', game);
+            console.log(bot)
             break;
         case 'pos':
             // todo: record position
             break;
         case 'tick':
             // todo: pass game object to bot to make move
+            console.log('tick')
+            let move = (bot.makeMove(game));
+            console.log(move)
             // todo: send move to server
+            client.write('move|' + move + '\n')
             // todo: record tick for reward
             break;
         case 'die':
@@ -61,16 +82,15 @@ handlePacket = function (packet) {
             // drop packet
             break;
         case 'win':
-            console.log('\x1b[32m%s\x1b[0m', 'You won!', '(won: ' + packet[1] + ', lost: ' + packet[2] + ')');
+            console.log('\x1b[32m%s\x1b[0m', 'You won!', '(won: ' + line[1] + ', lost: ' + line[2] + ')');
             //todo: reward massively (largest reward factor)
             break;
         case 'lose':
-            console.log('\x1b[31m%s\x1b[0m', 'You lost!', '(won: ' + packet[1] + ', lost: ' + packet[2] + ')');
+            console.log('\x1b[31m%s\x1b[0m', 'You lost!', '(won: ' + line[1] + ', lost: ' + line[2] + ')');
             // reward ticks per game survived
             break;
         default:
-            console.log('\x1b[33m%s\x1b[0m', 'Unknown packet type: ' + packet[0]);
+            console.log('\x1b[33m%s\x1b[0m', 'Unknown packet type: ' + line[0]);
             break;
     }
-
 }
