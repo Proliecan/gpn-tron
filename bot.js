@@ -18,20 +18,31 @@ bot = {
                                 }
                             }
                         }
-                    }
+                    },
+                    resetHeads: () => {
+                        // go through whole map and if negtive, take abs
+                        for (let i = 0; i < positions.length; i++) {
+                            for (let j = 0; j < positions[i].length; j++) {
+                                if (positions[i][j] < 0) {
+                                    positions[i][j] = Math.abs(positions[i][j]);
+                                }
+                            }
+                        }
+                    },
                 },
                 player: {
                     id: playerId,
                     x: 0,
                     y: 0,
                 },
+                enemies: [],
             }
         }
     },
 }
 
 bot.makeMove = (game) => {
-    let moves ={
+    let moves = {
         up: bot.translate(game.player, bot.vector('up'), game.map.width, game.map.height),
         down: bot.translate(game.player, bot.vector('down'), game.map.width, game.map.height),
         left: bot.translate(game.player, bot.vector('left'), game.map.width, game.map.height),

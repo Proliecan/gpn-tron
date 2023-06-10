@@ -1,5 +1,6 @@
 const net = require('net');
 const bot = require('./bot');
+const { log } = require('console');
 
 // make tcp connection to server
 const host = 'gpn-tron.duckdns.org';
@@ -62,6 +63,19 @@ handleLine = (line) => {
             break;
         case 'pos':
             game.map.positions[line[2]][line[3]] = line[1];
+
+            let enemy = game.enemies.find(enemy => enemy.id == line[1]);
+            if (enemy == undefined) {
+                game.enemies.push({
+                    id: parseInt(line[1]),
+                    x: parseInt(line[2]),
+                    y: parseInt(line[3]),
+                });
+            } else {
+                enemy.x = parseInt(line[2]);
+                enemy.y = parseInt(line[3]);
+            }
+
             if (line[1] == game.player.id) {
                 game.player.x = parseInt(line[2]);
                 game.player.y = parseInt(line[3]);
@@ -76,6 +90,8 @@ handleLine = (line) => {
             // if no move break
             if (move == undefined) break;
             client.write('move|' + move + '\n')
+            // reset heads
+            game.map.resetHeads()
             // todo: record tick for reward
             break;
         case 'die':
@@ -121,15 +137,27 @@ logMap = () => {
     for (let i = 0; i < map.length; i++) {
         let line = '';
         for (let j = 0; j < map[i].length; j++) {
+            let char = '\u2588';
             let colorCode = playerIDtoColorCode(map[j][i]);
 
             if (map[j][i] == Number.POSITIVE_INFINITY)
                 colorCode = '\x1b[37m';
-            else if (map[j][i] == game.player.id)
+            else if (map[j][i] == game.player.id){
                 colorCode = '\x1b[32m';
+                if (game.player.x == j && game.player.y == i) {
+                    char = '\u2591';
+                }
+            }
+            else {
+                // find head of id
+                let head = game.enemies.find(enemy => enemy.id == map[j][i]);
+                if (head != undefined && head.x == j && head.y == i) {
+                    char = '\u2591';
+                }
+            }
 
-            line += colorCode + '\u2588\x1b[0m';
-            line += colorCode + '\u2588\x1b[0m';
+            line += colorCode + char + '\x1b[0m';
+            line += colorCode + char + '\x1b[0m';
         }
         console.log(line);
     }
@@ -137,8 +165,8 @@ logMap = () => {
 
 playerIDtoColorCode = (id) => {
     id = (id % 5) + 1; // green (32) is reserved for player
-    
-    if (id == 2) id --;
+
+    if (id == 2) id--;
 
     return '\x1b[3' + id + 'm';
 }
