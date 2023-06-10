@@ -65,7 +65,10 @@ handleLine = (line) => {
             game.map.positions[line[2]][line[3]] = line[1];
 
             let enemy = game.enemies.find(enemy => enemy.id == line[1]);
-            if (enemy == undefined) {
+            if (line[1] == game.player.id) {
+                game.player.x = parseInt(line[2]);
+                game.player.y = parseInt(line[3]);
+            } else if (enemy == undefined) {
                 game.enemies.push({
                     id: parseInt(line[1]),
                     x: parseInt(line[2]),
@@ -74,11 +77,6 @@ handleLine = (line) => {
             } else {
                 enemy.x = parseInt(line[2]);
                 enemy.y = parseInt(line[3]);
-            }
-
-            if (line[1] == game.player.id) {
-                game.player.x = parseInt(line[2]);
-                game.player.y = parseInt(line[3]);
             }
             break;
         case 'tick':

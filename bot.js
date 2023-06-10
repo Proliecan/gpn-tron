@@ -59,6 +59,11 @@ bot.makeMove = (game) => {
     // check if move is possible
     bot.checkPossible(game, moves, badness)
 
+    // check if a head is nearby
+    let acceptableDistance = 3;
+    let penalty = 1000;
+    bot.checkHeads(game, moves, badness, acceptableDistance, penalty);
+
     console.log(badness);
 
     // select move with least badness
@@ -73,6 +78,33 @@ bot.makeMove = (game) => {
 
     return bestMove;
 
+}
+
+bot.checkHeads = (game, moves, badness, acceptableDistance, penalty) => {
+    // check if a head is nearby for every direction
+    bot.checkHeadsDirection(game, moves, badness, acceptableDistance, 'up', penalty);
+    bot.checkHeadsDirection(game, moves, badness, acceptableDistance, 'down', penalty);
+    bot.checkHeadsDirection(game, moves, badness, acceptableDistance, 'left', penalty);
+    bot.checkHeadsDirection(game, moves, badness, acceptableDistance, 'right', penalty);
+}
+
+bot.checkHeadsDirection = (game, moves, badness, acceptableDistance, direction, penalty) => {
+    // calculate future position
+    let futurePosition = bot.translate(game.player, bot.vector(direction), game.map.width, game.map.height);
+
+    // check if in a acceptableDistance x acceptableDistance square there is a head
+    for (let i = -acceptableDistance; i <= acceptableDistance; i++) {
+        for (let j = -acceptableDistance; j <= acceptableDistance; j++) {
+            // check enemy heads
+            let checkPos = bot.translate(futurePosition, { x: i, y: j }, game.map.width, game.map.height);
+            let enemy = game.enemies.find(enemy => enemy.x == checkPos.x && enemy.y == checkPos.y);
+
+            if (enemy != undefined) {
+                // the nearer the head, the worse the move
+                badness[direction] += penalty / (Math.abs(i) + Math.abs(j) + 1);
+            }
+        }
+    }
 }
 
 bot.checkPossible = (game, moves, badness) => {
