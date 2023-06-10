@@ -58,10 +58,8 @@ handleLine = (line) => {
             break;
         case 'game':
             // todo: make new game object
-            console.log(line);
             game = bot.factory.newGame(line[1], line[2], line[3]);
-            console.log('New game: ', game);
-            console.log(bot)
+            console.log('<New game!>');
             break;
         case 'pos':
             // todo: record position
