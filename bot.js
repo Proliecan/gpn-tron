@@ -60,9 +60,13 @@ bot.makeMove = (game) => {
     bot.checkPossible(game, moves, badness)
 
     // check if a head is nearby
-    let acceptableDistance = 3;
-    let penalty = 1000;
-    bot.checkHeads(game, moves, badness, acceptableDistance, penalty);
+    let acceptableDistance = 2;
+    let maxHeadPenalty = 1000;
+    bot.checkHeads(game, moves, badness, acceptableDistance, maxHeadPenalty);
+
+    // calculate degees of freedom
+    let freedomMultiplier = 10;
+    bot.checkDegreesOfFreedom(game, moves, badness, freedomMultiplier);
 
     console.log(badness);
 
@@ -80,15 +84,67 @@ bot.makeMove = (game) => {
 
 }
 
-bot.checkHeads = (game, moves, badness, acceptableDistance, penalty) => {
-    // check if a head is nearby for every direction
-    bot.checkHeadsDirection(game, moves, badness, acceptableDistance, 'up', penalty);
-    bot.checkHeadsDirection(game, moves, badness, acceptableDistance, 'down', penalty);
-    bot.checkHeadsDirection(game, moves, badness, acceptableDistance, 'left', penalty);
-    bot.checkHeadsDirection(game, moves, badness, acceptableDistance, 'right', penalty);
+bot.checkDegreesOfFreedom = (game, moves, badness, freedomMultiplier) => {
+    // foreach move
+    for (let i = 0; i < Object.keys(moves).length; i++) {
+        // generate flood map
+        let floodMap = Array.from({ length: game.map.width }, () => Array.from({ length: game.map.height }, () => 0));
+        // fill flood map
+        for (let i = 0; i < game.map.width; i++) {
+            for (let j = 0; j < game.map.height; j++) {
+                floodMap[i][j] = game.map.positions[i][j] == Number.POSITIVE_INFINITY ? 0 : -1;
+            }
+        }
+        // count freedom
+        let freedom = bot.countFreedom(floodMap, moves[Object.keys(moves)[i]], freedomMultiplier);
+
+        // subtract freedom from badness
+        badness[Object.keys(moves)[i]] -= freedom * freedomMultiplier;
+
+        // log i and freedom
+        console.log(i + ' ' + freedom);
+    }
+
+    console.log(badness);
 }
 
-bot.checkHeadsDirection = (game, moves, badness, acceptableDistance, direction, penalty) => {
+bot.countFreedom = (floodmap, pos, freedomMultiplier) => {
+    // mark myself as visited
+    floodmap[pos.x][pos.y] = 1;
+
+    // generate my neighbours
+    let neighbours = [
+        bot.translate(pos, bot.vector('up'), floodmap.length, floodmap[0].length),
+        bot.translate(pos, bot.vector('down'), floodmap.length, floodmap[0].length),
+        bot.translate(pos, bot.vector('left'), floodmap.length, floodmap[0].length),
+        bot.translate(pos, bot.vector('right'), floodmap.length, floodmap[0].length),
+    ];
+
+    let freedom = 0;
+
+    // for each neighbour
+    for (let i = 0; i < neighbours.length; i++) {
+        // if neighbour is free
+        if (floodmap[neighbours[i].x][neighbours[i].y] == 0) {
+            freedom++;
+            // count freedom of neighbour
+            freedom += bot.countFreedom(floodmap, neighbours[i], freedomMultiplier);
+        }
+    }
+
+    return freedom;
+}
+
+
+bot.checkHeads = (game, moves, badness, acceptableDistance, MaxPenalty) => {
+    // check if a head is nearby for every direction
+    bot.checkHeadsDirection(game, moves, badness, acceptableDistance, 'up', MaxPenalty);
+    bot.checkHeadsDirection(game, moves, badness, acceptableDistance, 'down', MaxPenalty);
+    bot.checkHeadsDirection(game, moves, badness, acceptableDistance, 'left', MaxPenalty);
+    bot.checkHeadsDirection(game, moves, badness, acceptableDistance, 'right', MaxPenalty);
+}
+
+bot.checkHeadsDirection = (game, moves, badness, acceptableDistance, direction, MaxPenalty) => {
     // calculate future position
     let futurePosition = bot.translate(game.player, bot.vector(direction), game.map.width, game.map.height);
 
@@ -101,7 +157,7 @@ bot.checkHeadsDirection = (game, moves, badness, acceptableDistance, direction, 
 
             if (enemy != undefined) {
                 // the nearer the head, the worse the move
-                badness[direction] += penalty / (Math.abs(i) + Math.abs(j) + 1);
+                badness[direction] += MaxPenalty / (Math.abs(i) + Math.abs(j) + 1);
             }
         }
     }
